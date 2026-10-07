@@ -19,7 +19,7 @@ mvn -version
 1. Obtain the repository. Once this project is pushed, use its Git URL:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/hnrocks07/duck-store-poc.git
 cd duck-store
 ```
 
