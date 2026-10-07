@@ -80,16 +80,17 @@ The response includes the package, protections, total, and each pricing line.
 - Money uses `BigDecimal`, with line and final amounts rounded to two decimals using half-up rounding.
 - Adding a duck identical to a logically deleted row restores that row and adds its quantity. This preserves history without duplicates.
 - Price edits that collide with a different active identity are currently rejected by the database's identity constraint. This POC does not silently merge on edit because merging is only specified for add.
-- The database keeps one active row per color/size/price. The single-process POC additionally serializes add operations; the unique database constraint is a second guard.
+- The database unique constraint guarantees one row per color/size/price. A duplicate-key insert race retries once in a fresh transaction and merges quantities; this works across application instances sharing the same database.
+- Country matching is trimmed and case-insensitive. Only USA, Bolivia, and India have special rates; `US` and `United States` use the 15% default.
+- The pricing endpoint does not check available stock or decrement stock because reservation is outside the assignment scope.
+- IDs are `Long`, money is `BigDecimal`, and color/size are enums for validation.
+- Editing permits quantity zero for out-of-stock items; adding requires at least one unit. An edit colliding with any active or deleted identity is rejected.
 
 ## Design patterns
 
-- **Strategy:** `WoodPackagingStrategy`, `CardboardPackagingStrategy`, and `PlasticPackagingStrategy` encapsulate package/protection behavior.
-- **Factory:** `PackagingStrategyFactory` selects the strategy for the ordered duck size.
-- **Chain of Responsibility:** `PricingCalculator` runs ordered `PricingRule` components: volume discount, package adjustment, destination adjustment, and shipping charge.
-- **Repository:** `DuckRepository` isolates JPA queries and row locking.
-- **Service layer:** `DuckService` and `OrderService` contain use-case logic; controllers only handle HTTP.
-- **DTOs:** request/response records keep API contracts separate from the `Duck` entity.
+- **Shipping Strategy:** each shipping mode owns its cost and protection behavior.
+- **Package lookup:** `PackagingStrategyFactory` selects the package type for a size.
+- **Ordered pricing pipeline:** small pricing rules apply independently and append their own breakdown line. Adding a shipping mode or pricing rule means adding one class.
 
 ## Project layout
 
