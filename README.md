@@ -86,6 +86,15 @@ The response includes the package, protections, total, and each pricing line.
 - Price edits that collide with a different active identity are currently rejected by the database's identity constraint. This POC does not silently merge on edit because merging is only specified for add.
 - The database keeps one active row per color/size/price. The single-process POC additionally serializes add operations; the unique database constraint is a second guard.
 
+## Design patterns
+
+- **Strategy:** `WoodPackagingStrategy`, `CardboardPackagingStrategy`, and `PlasticPackagingStrategy` encapsulate package/protection behavior.
+- **Factory:** `PackagingStrategyFactory` selects the strategy for the ordered duck size.
+- **Chain of Responsibility:** `PricingCalculator` runs ordered `PricingRule` components: volume discount, package adjustment, destination adjustment, and shipping charge.
+- **Repository:** `DuckRepository` isolates JPA queries and row locking.
+- **Service layer:** `DuckService` and `OrderService` contain use-case logic; controllers only handle HTTP.
+- **DTOs:** request/response records keep API contracts separate from the `Duck` entity.
+
 ## Project layout
 
 - `duck`: entity, repository, CRUD controller/service, and request validation.

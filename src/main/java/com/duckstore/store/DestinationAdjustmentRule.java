@@ -1,0 +1,3 @@
+package com.duckstore.store;
+import org.springframework.core.annotation.Order; import org.springframework.stereotype.Component; import java.math.*; import java.util.Locale;
+@Component @Order(3) public class DestinationAdjustmentRule implements PricingRule { public void apply(PricingContext c){BigDecimal r=switch(c.country().trim().toLowerCase(Locale.ROOT)){case "usa"->new BigDecimal(".18");case "bolivia"->new BigDecimal(".13");case "india"->new BigDecimal(".19");default->new BigDecimal(".15");};c.add("Destination "+c.country().trim()+" adjustment ("+r.movePointRight(2).stripTrailingZeros().toPlainString()+"%)",c.base().multiply(r));} }
