@@ -73,6 +73,18 @@ Tests cover merge behavior, concurrent same-duck additions, logical deletion/res
 
 The response includes the package, protections, total, and each pricing line.
 
+### Curl examples
+
+```bash
+curl http://localhost:8080/api/ducks
+curl -X POST http://localhost:8080/api/ducks -H 'Content-Type: application/json' -d '{"color":"Red","size":"Large","price":12.50,"quantity":5}'
+curl -X PUT http://localhost:8080/api/ducks/1 -H 'Content-Type: application/json' -d '{"price":15.00,"quantity":0}'
+curl -X DELETE http://localhost:8080/api/ducks/1
+curl -X POST http://localhost:8080/api/orders/price -H 'Content-Type: application/json' -d '{"color":"Red","size":"Large","quantity":1001,"destinationCountry":"India","shippingMode":"Air"}'
+```
+
+The final request includes separate `Air shipping` and `Air bulk discount (15%)` lines in its breakdown.
+
 ## Deliberate decisions for ambiguities
 
 - When multiple active rows share an order's color and size, the API uses the lowest unit price (then oldest ID) and does not decrement warehouse stock; inventory reservation was not requested.
