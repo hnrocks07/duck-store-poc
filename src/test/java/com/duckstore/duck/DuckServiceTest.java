@@ -19,11 +19,17 @@ class DuckServiceTest {
         service.add(red(3)); service.add(red(4));
         var ducks = service.list(); assertEquals(1, ducks.size()); assertEquals(7, ducks.getFirst().quantity());
     }
-    @Test void concurrent_matching_adds_preserve_single_row_and_every_unit() throws Exception {
-        var pool = Executors.newFixedThreadPool(2);
-        try { var a=pool.submit(() -> service.add(red(3))); var b=pool.submit(() -> service.add(red(4))); a.get(); b.get(); }
-        finally { pool.shutdownNow(); }
-        var ducks=service.list(); assertEquals(1, ducks.size()); assertEquals(7, ducks.getFirst().quantity());
+    @RepeatedTest(10) void concurrent_matching_adds_preserve_single_row_and_every_unit() throws Exception {
+        var start = new CountDownLatch(1);
+        var pool = Executors.newFixedThreadPool(10);
+        try {
+            var futures = java.util.stream.IntStream.rangeClosed(1, 10)
+                .mapToObj(quantity -> pool.submit(() -> { start.await(); return service.add(red(quantity)); }))
+                .toList();
+            start.countDown();
+            for (var future : futures) future.get();
+        } finally { pool.shutdownNow(); }
+        var ducks=service.list(); assertEquals(1, ducks.size()); assertEquals(55, ducks.getFirst().quantity());
     }
     @Test void logical_delete_hides_duck_and_same_add_restores_it() {
         var duck=service.add(red(2)); service.delete(duck.id()); assertTrue(service.list().isEmpty());

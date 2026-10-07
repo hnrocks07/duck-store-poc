@@ -5,9 +5,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PackagingResolver {
     private final PackagingStrategyFactory factory;
-    public PackagingResolver(PackagingStrategyFactory factory){this.factory=factory;}
+    private final ShippingStrategyFactory shipping;
+    public PackagingResolver(PackagingStrategyFactory factory, ShippingStrategyFactory shipping){this.factory=factory;this.shipping=shipping;}
     public Packaging resolve(DuckSize size, ShippingMode shippingMode) {
-        return factory.getStrategy(size).create(shippingMode);
+        PackageType packageType=factory.getStrategy(size).packageType();
+        return new Packaging(packageType,shipping.get(shippingMode).protections(packageType));
     }
     public record Packaging(PackageType type, java.util.List<String> protections) { }
 }

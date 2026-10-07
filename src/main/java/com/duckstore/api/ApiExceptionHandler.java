@@ -1,6 +1,7 @@
 package com.duckstore.api;
 
 import com.duckstore.duck.NotFoundException;
+import com.duckstore.duck.DuplicateDuckException;
 import org.springframework.http.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -22,4 +23,6 @@ public class ApiExceptionHandler {
     Map<String,String> unreadable(HttpMessageNotReadableException e) { return Map.of("error", "Validation failed"); }
     @ExceptionHandler(DataIntegrityViolationException.class) @ResponseStatus(HttpStatus.CONFLICT)
     Map<String,String> conflict(DataIntegrityViolationException e) { return Map.of("error", "This edit would duplicate an active duck identity."); }
+    @ExceptionHandler(DuplicateDuckException.class) @ResponseStatus(HttpStatus.CONFLICT)
+    Map<String,String> duplicate(DuplicateDuckException e) { return Map.of("error", e.getMessage()); }
 }

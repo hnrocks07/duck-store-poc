@@ -20,14 +20,10 @@ mvn -version
 
 ```bash
 git clone https://github.com/hnrocks07/duck-store-poc.git
-cd duck-store
+cd duck-store-poc
 ```
 
-If you received the project as a ZIP, extract it and change into its folder instead:
-
-```bash
-cd "Duck Project"
-```
+If you received the project as a ZIP, extract it and change into the extracted repository folder instead.
 
 2. Start the application. Maven downloads dependencies automatically on the first run:
 
@@ -37,7 +33,7 @@ mvn spring-boot:run
 
 3. Open `http://localhost:8080` for the warehouse UI.
 
-The H2 database is file-backed in `./data/duckstore`; it is created automatically. The H2 console is available at `http://localhost:8080/h2-console` (JDBC URL: `jdbc:h2:file:./data/duckstore`). Stop the application with `Ctrl+C` in the terminal.
+The H2 database is file-backed in `./data/duckstore`; it is created automatically. The H2 console is disabled by default and can be enabled locally with `spring.h2.console.enabled=true`. Stop the application with `Ctrl+C` in the terminal.
 
 ## Test
 

@@ -13,7 +13,7 @@ public class PricingCalculator {
         rules.forEach(rule->rule.apply(context));
         List<PricingLine> lines=context.lines();
         BigDecimal total = lines.stream().map(PricingLine::amount).reduce(BigDecimal.ZERO, BigDecimal::add).setScale(2, RoundingMode.HALF_UP);
-        return new Calculation(total, lines.stream().map(l -> new PricingLine(l.label(), l.amount().setScale(2, RoundingMode.HALF_UP))).toList());
+        return new Calculation(total, lines);
     }
     public record Calculation(BigDecimal total, List<PricingLine> lines) { }
 }
