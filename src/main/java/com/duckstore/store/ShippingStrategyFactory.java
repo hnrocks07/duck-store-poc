@@ -7,11 +7,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ShippingStrategyFactory {
-    private final Map<ShippingMode, ShippingStrategy> strategies = new EnumMap<>(ShippingMode.class);
+  private final Map<ShippingMode, ShippingStrategy> strategies = new EnumMap<>(ShippingMode.class);
 
-    public ShippingStrategyFactory(List<ShippingStrategy> shippingStrategies) {
-        shippingStrategies.forEach(strategy -> strategies.put(strategy.mode(), strategy));
-    }
+  public ShippingStrategyFactory(List<ShippingStrategy> shippingStrategies) {
+    shippingStrategies.forEach(strategy -> strategies.put(strategy.mode(), strategy));
+  }
 
-    public ShippingStrategy get(ShippingMode mode) { return strategies.get(mode); }
+  public ShippingStrategy get(ShippingMode mode) {
+    return strategies.get(mode);
+  }
 }

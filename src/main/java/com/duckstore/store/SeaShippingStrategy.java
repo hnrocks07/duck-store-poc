@@ -6,7 +6,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class SeaShippingStrategy implements ShippingStrategy {
-    public ShippingMode mode() { return ShippingMode.Sea; }
-    public BigDecimal cost(int quantity) { return new BigDecimal("400"); }
-    public List<String> protections(PackageType packageType) { return List.of("Moisture-absorbing beads", "Bubble-wrap bags"); }
+  public ShippingMode mode() {
+    return ShippingMode.Sea;
+  }
+
+  public BigDecimal cost(int quantity) {
+    return new BigDecimal("400");
+  }
+
+  public List<String> protections(PackageType packageType) {
+    return Protection.SEA;
+  }
 }

@@ -1,13 +1,233 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Duck Warehouse</title><style>
-body{font:16px system-ui,sans-serif;max-width:960px;margin:36px auto;padding:0 16px;color:#1e293b}form{display:flex;gap:10px;flex-wrap:wrap;background:#f1f5f9;padding:16px;border-radius:8px}input,select,button{padding:8px;font:inherit}button{cursor:pointer;background:#0f766e;color:white;border:0;border-radius:4px}.delete{background:#b91c1c}table{width:100%;border-collapse:collapse;margin-top:20px}th,td{padding:10px;border-bottom:1px solid #cbd5e1;text-align:left}.error{color:#b91c1c;min-height:24px}</style></head>
-<body><h1>Duck Warehouse</h1><form id="duck-form"><select id="color" required><option value="">Color</option><option>Red</option><option>Green</option><option>Yellow</option><option>Black</option></select><select id="size" required><option value="">Size</option><option>XLarge</option><option>Large</option><option>Medium</option><option>Small</option><option>XSmall</option></select><input id="price" type="number" min="0.01" step="0.01" placeholder="Price (USD)" required><input id="quantity" type="number" min="1" step="1" placeholder="Quantity" required><button id="submit">Add duck</button><button id="cancel" type="button" hidden>Cancel</button></form><p class="error" id="error"></p><table><thead><tr><th>ID</th><th>Color</th><th>Size</th><th>Price</th><th>Quantity</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table>
-<script>
-const form=document.querySelector('#duck-form'),rows=document.querySelector('#rows'),error=document.querySelector('#error'),color=document.querySelector('#color'),size=document.querySelector('#size'),price=document.querySelector('#price'),quantity=document.querySelector('#quantity'),submit=document.querySelector('#submit'),cancel=document.querySelector('#cancel');let editing=null,ducks=[];
-async function api(url,options={}){const response=await fetch(url,{headers:{'Content-Type':'application/json'},...options});const body=await response.text();let data;try{data=body?JSON.parse(body):null}catch{data={error:'Request failed'}}if(!response.ok)throw new Error(data?.error||'Request failed');return data}
-function setFormMode(duck){editing=duck||null;color.disabled=Boolean(duck);size.disabled=Boolean(duck);submit.textContent=duck?'Save':'Add duck';cancel.hidden=!duck;form.reset();quantity.min=duck?'0':'1';if(duck){color.value=duck.color;size.value=duck.size;price.value=duck.price;quantity.value=duck.quantity}}
-function renderRows(){rows.replaceChildren();ducks.forEach(duck=>{const row=document.createElement('tr');[duck.id,duck.color,duck.size,`${Number(duck.price).toFixed(2)} USD`,duck.quantity].forEach(value=>{const cell=document.createElement('td');cell.textContent=value;row.append(cell)});const actions=document.createElement('td');[['Edit','edit'],['Delete','delete']].forEach(([label,action])=>{const button=document.createElement('button');button.textContent=label;button.dataset.action=action;button.dataset.id=duck.id;if(action==='delete')button.className='delete';actions.append(button)});row.append(actions);rows.append(row)})}
-function readForm(){return {color:color.value,size:size.value,price:Number(price.value),quantity:Number(quantity.value)}}
-async function load(){ducks=await api('/api/ducks');renderRows()}
-form.addEventListener('submit',async event=>{event.preventDefault();error.textContent='';const data=readForm();try{await api(editing?`/api/ducks/${editing.id}`:'/api/ducks',{method:editing?'PUT':'POST',body:JSON.stringify(editing?{price:data.price,quantity:data.quantity}:data)});setFormMode();await load()}catch(e){error.textContent=e.message}});cancel.addEventListener('click',()=>setFormMode());rows.addEventListener('click',async event=>{const button=event.target.closest('button');if(!button)return;const duck=ducks.find(item=>item.id===Number(button.dataset.id));if(button.dataset.action==='edit')setFormMode(duck);if(button.dataset.action==='delete'&&confirm('Logically delete this duck?'))try{await api(`/api/ducks/${duck.id}`,{method:'DELETE'});error.textContent='';await load()}catch(e){error.textContent=e.message}});setFormMode();load().catch(e=>error.textContent=e.message);
-</script></body></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Duck Warehouse</title>
+    <style>
+      body {
+        font:
+          16px system-ui,
+          sans-serif;
+        max-width: 960px;
+        margin: 36px auto;
+        padding: 0 16px;
+        color: #1e293b;
+      }
+      form {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        background: #f1f5f9;
+        padding: 16px;
+        border-radius: 8px;
+      }
+      input,
+      select,
+      button {
+        padding: 8px;
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+        background: #0f766e;
+        color: white;
+        border: 0;
+        border-radius: 4px;
+      }
+      .delete {
+        background: #b91c1c;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #cbd5e1;
+        text-align: left;
+      }
+      .error {
+        color: #b91c1c;
+        min-height: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Duck Warehouse</h1>
+    <form id="duck-form">
+      <select id="color" required>
+        <option value="">Color</option>
+        <option>Red</option>
+        <option>Green</option>
+        <option>Yellow</option>
+        <option>Black</option></select
+      ><select id="size" required>
+        <option value="">Size</option>
+        <option>XLarge</option>
+        <option>Large</option>
+        <option>Medium</option>
+        <option>Small</option>
+        <option>XSmall</option></select
+      ><input
+        id="price"
+        type="number"
+        min="0.01"
+        step="0.01"
+        placeholder="Price (USD)"
+        required
+      /><input
+        id="quantity"
+        type="number"
+        min="1"
+        step="1"
+        placeholder="Quantity"
+        required
+      /><button id="submit">Add duck</button
+      ><button id="cancel" type="button" hidden>Cancel</button>
+    </form>
+    <p class="error" id="error"></p>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Color</th>
+          <th>Size</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <script>
+      const form = document.querySelector("#duck-form"),
+        rows = document.querySelector("#rows"),
+        error = document.querySelector("#error"),
+        color = document.querySelector("#color"),
+        size = document.querySelector("#size"),
+        price = document.querySelector("#price"),
+        quantity = document.querySelector("#quantity"),
+        submit = document.querySelector("#submit"),
+        cancel = document.querySelector("#cancel");
+      let editing = null,
+        ducks = [];
+      async function api(url, options = {}) {
+        const response = await fetch(url, {
+          headers: { "Content-Type": "application/json" },
+          ...options,
+        });
+        const body = await response.text();
+        let data;
+        try {
+          data = body ? JSON.parse(body) : null;
+        } catch {
+          data = { error: "Request failed" };
+        }
+        if (!response.ok) throw new Error(data?.error || "Request failed");
+        return data;
+      }
+      function setFormMode(duck) {
+        error.textContent = "";
+        editing = duck || null;
+        color.disabled = Boolean(duck);
+        size.disabled = Boolean(duck);
+        submit.textContent = duck ? "Save" : "Add duck";
+        cancel.hidden = !duck;
+        form.reset();
+        quantity.min = duck ? "0" : "1";
+        if (duck) {
+          color.value = duck.color;
+          size.value = duck.size;
+          price.value = duck.price;
+          quantity.value = duck.quantity;
+        }
+      }
+      function renderRows() {
+        rows.replaceChildren();
+        ducks.forEach((duck) => {
+          const row = document.createElement("tr");
+          [
+            duck.id,
+            duck.color,
+            duck.size,
+            `${Number(duck.price).toFixed(2)} USD`,
+            duck.quantity,
+          ].forEach((value) => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.append(cell);
+          });
+          const actions = document.createElement("td");
+          [
+            ["Edit", "edit"],
+            ["Delete", "delete"],
+          ].forEach(([label, action]) => {
+            const button = document.createElement("button");
+            button.textContent = label;
+            button.dataset.action = action;
+            button.dataset.id = duck.id;
+            if (action === "delete") button.className = "delete";
+            actions.append(button);
+          });
+          row.append(actions);
+          rows.append(row);
+        });
+      }
+      function readForm() {
+        return {
+          color: color.value,
+          size: size.value,
+          price: Number(price.value),
+          quantity: Number(quantity.value),
+        };
+      }
+      async function load() {
+        ducks = await api("/api/ducks");
+        renderRows();
+      }
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        error.textContent = "";
+        const data = readForm();
+        try {
+          await api(editing ? `/api/ducks/${editing.id}` : "/api/ducks", {
+            method: editing ? "PUT" : "POST",
+            body: JSON.stringify(
+              editing ? { price: data.price, quantity: data.quantity } : data,
+            ),
+          });
+          setFormMode();
+          await load();
+        } catch (e) {
+          error.textContent = e.message;
+        }
+      });
+      cancel.addEventListener("click", () => setFormMode());
+      rows.addEventListener("click", async (event) => {
+        const button = event.target.closest("button");
+        if (!button) return;
+        const duck = ducks.find(
+          (item) => item.id === Number(button.dataset.id),
+        );
+        if (button.dataset.action === "edit") setFormMode(duck);
+        if (
+          button.dataset.action === "delete" &&
+          confirm("Logically delete this duck?")
+        )
+          try {
+            await api(`/api/ducks/${duck.id}`, { method: "DELETE" });
+            if (editing?.id === duck.id) setFormMode();
+            error.textContent = "";
+            await load();
+          } catch (e) {
+            error.textContent = e.message;
+          }
+      });
+      setFormMode();
+      load().catch((e) => (error.textContent = e.message));
+    </script>
+  </body>
+</html>
